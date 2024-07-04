@@ -2,30 +2,16 @@ receivers:
   otlp:
     protocols:
       grpc:
+        endpoint: 0.0.0.0:4317
       http:
-  hostmetrics:
-    scrapers:
-      cpu:
-      disk:
-      filesystem:
-      load:
-      memory:
-      network:
-  jaeger:
-    protocols:
-      grpc:
-      thrift_binary:
-      thrift_compact:
-      thrift_http:
+        endpoint: 0.0.0.0:4318
   prometheus:
     config:
       scrape_configs:
         - job_name: "otel-collector"
-          scrape_interval: 5s
+          scrape_interval: 60s
           static_configs:
             - targets: ["localhost:8888"]
-  zipkin:
-
 processors:
   batch:
 
@@ -41,18 +27,16 @@ exporters:
 extensions:
   health_check:
   pprof:
-    endpoint: 0.0.0.0:1777
   zpages:
-    endpoint: 0.0.0.0:55679
 
 service:
-  extensions: [health_check,pprof,zpages]
+  extensions: [health_check, pprof, zpages]
   pipelines:
     traces:
-      receivers: [jaeger,otlp,zipkin]
+      receivers: [otlp]
       processors: [batch]
       exporters: [otlp/tempo]
     metrics:
-      receivers: [hostmetrics,otlp]
+      receivers: [otlp, prometheus]
       processors: [batch]
       exporters: [prometheusremotewrite]
